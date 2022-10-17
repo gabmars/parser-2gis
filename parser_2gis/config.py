@@ -35,6 +35,8 @@ class Configuration(BaseModel):
 
         super().__init__(*args, **kwargs)
         setup_config(self)
+        if self.parser.keep_progress_file:
+            self.writer.mode = 'a'
 
     def merge_with(self, other_config: Configuration) -> None:
         """Merge configuration with onother one."""

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, IO
 
 from ...logger import logger
 
 if TYPE_CHECKING:
-    from ..options import WriterOptions
+    from ..options import WriterOaptions
 
 
 class FileWriter(ABC):
@@ -65,7 +66,8 @@ class FileWriter(ABC):
             return False
 
     def __enter__(self) -> FileWriter:
-        self._file = self._open_file(self._file_path, 'w')
+        self.is_new_file = not os.path.exists(self._file_path)
+        self._file = self._open_file(self._file_path, self._options.mode)
         return self
 
     def __exit__(self, *exc_info) -> None:

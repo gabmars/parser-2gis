@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import codecs
+from typing import Literal
 
 from pydantic import BaseModel, PositiveInt, validator
 
@@ -34,6 +35,7 @@ class WriterOptions(BaseModel):
     encoding: str = 'utf-8-sig'
     verbose: bool = True
     csv: CSVOptions = CSVOptions()
+    mode: Literal['w', 'a'] = 'w'
 
     @validator('encoding')
     def encoding_exists(cls, v: str) -> str:

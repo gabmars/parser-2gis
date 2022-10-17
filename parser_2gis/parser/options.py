@@ -27,3 +27,4 @@ class ParserOptions(BaseModel):
     max_records: PositiveInt = default_max_records()
     use_gc: bool = False
     gc_pages_interval: PositiveInt = 10
+    keep_progress_file: str = None

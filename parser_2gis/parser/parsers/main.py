@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os.path
 import re
 import urllib.parse
 from typing import TYPE_CHECKING
@@ -116,6 +117,9 @@ class MainParser:
         Returns:
             `True` on success, `False` on failure.
         """
+
+        self._wait_requests_finished()
+
         dom_tree = self._chrome_remote.get_document()
         page_links = dom_tree.search(lambda x: x.local_name == 'a' and 'href' in x.attributes)
 
@@ -128,6 +132,11 @@ class MainParser:
         if n_page in available_pages:
             self._chrome_remote.perform_click(available_pages[n_page])
             return True
+        elif available_pages:
+            page = sorted(available_pages, key=lambda x: int(re.findall(r'/page/(\d+)', available_pages[x].attributes['href'])[0]), reverse=True)[0]
+            logger.info(f'Пропущена страница {page}')
+            self._chrome_remote.perform_click(available_pages[page])
+            return self._go_page(n_page)
 
         return False
 
@@ -141,7 +150,12 @@ class MainParser:
         # 2GIS redirects user to the beginning automatically,
         # so we better not to play with GET params.
         url = re.sub(r'/page/\d+', '', self._url, re.I)
+        progress = {}
         current_page_number = 1
+        if os.path.exists(self._options.keep_progress_file):
+            progress = json.load(open(self._options.keep_progress_file, 'r'))
+            if url in progress:
+                current_page_number = progress[url]
 
         # Go URL
         self._chrome_remote.navigate(url, referer='https://google.com', timeout=120)
@@ -179,7 +193,12 @@ class MainParser:
             visited_links.update(link_addresses)
             return links
 
-        while True:
+        if current_page_number != 1:
+            next_page = self._go_page(current_page_number)
+        else:
+            next_page = True
+        while True and next_page:
+            logger.info(f'Страница {current_page_number}')
             # Wait all 2GIS requests get finished
             self._wait_requests_finished()
 
@@ -239,6 +258,8 @@ class MainParser:
 
             if self._go_page(current_page_number + 1):
                 current_page_number += 1
+                progress[url] = current_page_number
+                json.dump(progress, open(self._options.keep_progress_file, 'w'))
             else:
                 break
 

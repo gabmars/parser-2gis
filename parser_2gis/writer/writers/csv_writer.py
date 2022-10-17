@@ -66,8 +66,12 @@ class CSVWriter(FileWriter):
     def __enter__(self) -> CSVWriter:
         super().__enter__()
         self._writer = csv.DictWriter(self._file, self._data_mapping.keys())
-        self._writer.writerow(self._data_mapping)  # Write header
-        self._wrote_count = 0
+        if self.is_new_file:
+            self._writer.writerow(self._data_mapping)  # Write header
+            self._wrote_count = 0
+        else:
+            reader = csv.reader(self._open_file(self._file_path))
+            self._wrote_count = len(list(reader))
         return self
 
     def __exit__(self, *exc_info) -> None:
