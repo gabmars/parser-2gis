@@ -104,7 +104,7 @@ class MainParser:
         """Wait for all pending requests."""
         return self._chrome_remote.execute_script('window.openHTTPs == 0')
 
-    def _go_page(self, n_page: int) -> bool:
+    def _go_page(self, n_page: int, skip: bool = False) -> bool:
         """Go page with number `n_page`.
 
         Note:
@@ -132,11 +132,11 @@ class MainParser:
         if n_page in available_pages:
             self._chrome_remote.perform_click(available_pages[n_page])
             return True
-        elif available_pages:
+        elif available_pages and skip:
             page = sorted(available_pages, key=lambda x: int(re.findall(r'/page/(\d+)', available_pages[x].attributes['href'])[0]), reverse=True)[0]
             logger.info(f'Пропущена страница {page}')
             self._chrome_remote.perform_click(available_pages[page])
-            return self._go_page(n_page)
+            return self._go_page(n_page, skip)
 
         return False
 
@@ -194,7 +194,7 @@ class MainParser:
             return links
 
         if current_page_number != 1:
-            next_page = self._go_page(current_page_number)
+            next_page = self._go_page(current_page_number, True)
         else:
             next_page = True
         while True and next_page:

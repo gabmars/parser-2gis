@@ -20,7 +20,7 @@ class CSVOptions(BaseModel):
     add_rubrics: bool = True
     add_comments: bool = True
     columns_per_entity: PositiveInt = 3
-    remove_empty_columns: bool = True
+    remove_empty_columns: bool = False
     remove_duplicates: bool = True
     join_char: str = '; '
 

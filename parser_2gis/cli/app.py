@@ -12,5 +12,7 @@ if TYPE_CHECKING:
 def cli_app(urls: list[str], output_path: str, format: str, config: Configuration) -> None:
     setup_cli_logger(config.log)
 
-    runner = CLIRunner(urls, output_path, format, config)
-    runner.start()
+    while True:
+        runner = CLIRunner(urls, output_path, format, config)
+        if runner.start():
+            break

@@ -16,8 +16,9 @@ class CLIRunner(AbstractRunner):
         format: `csv` or `json` format.
         config: Configuration.
     """
-    def start(self):
+    def start(self) -> bool:
         logger.info('Парсинг запущен.')
+        res = True
         try:
             with get_writer(self._output_path, self._format, self._config.writer) as writer:
                 for url in self._urls:
@@ -34,10 +35,13 @@ class CLIRunner(AbstractRunner):
         except Exception as e:
             if isinstance(e, ChromeRuntimeException) and str(e) == 'Tab has been stopped':
                 logger.error('Вкладка браузера была закрыта.')
+                res = False
             else:
                 logger.error('Ошибка во время работы парсера.', exc_info=True)
         finally:
             logger.info('Парсинг завершён.')
+
+        return res
 
     def stop(self):
         pass
