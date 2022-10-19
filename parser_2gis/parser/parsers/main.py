@@ -152,7 +152,7 @@ class MainParser:
         url = re.sub(r'/page/\d+', '', self._url, re.I)
         progress = {}
         current_page_number = 1
-        if os.path.exists(self._options.keep_progress_file):
+        if self._options.keep_progress_file and os.path.exists(self._options.keep_progress_file):
             progress = json.load(open(self._options.keep_progress_file, 'r'))
             if url in progress:
                 current_page_number = progress[url]
@@ -258,9 +258,13 @@ class MainParser:
 
             if self._go_page(current_page_number + 1):
                 current_page_number += 1
-                progress[url] = current_page_number
-                json.dump(progress, open(self._options.keep_progress_file, 'w'))
+                if self._options.keep_progress_file:
+                    progress[url] = current_page_number
+                    json.dump(progress, open(self._options.keep_progress_file, 'w'))
             else:
+                if self._options.keep_progress_file:
+                    progress.pop(url)
+                    json.dump(progress, open(self._options.keep_progress_file, 'w'))
                 break
 
     def close(self) -> None:
